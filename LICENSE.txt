@@ -1,0 +1,5 @@
+Copyright © 2025 Erim Yanik. All rights reserved.
+
+This software is proprietary and confidential. No part of this software may be reproduced, distributed, or used in any manner without express written permission from the author.
+
+Commercial use, redistribution, or modification of this code or any derivative work is strictly prohibited unless explicitly licensed.
