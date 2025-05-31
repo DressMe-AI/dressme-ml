@@ -158,7 +158,7 @@ def train_validate_model(X: np.ndarray, y: np.ndarray,
         save_weights_only=True,
         verbose=0
     )
-   
+    
     csv_logger = callbacks.CSVLogger("training_log.csv", append=false)
 
     history = model.fit(
@@ -184,11 +184,11 @@ def train_validate_model(X: np.ndarray, y: np.ndarray,
     f1 = f1_score(y_test, y_pred, zero_division=0)
 
     if verbose:
-    	print(f"val_accuracy={accuracy:.4f}")
-    	print(f"val_precision={precision:.4f}")
-    	print(f"val_recall={recall:.4f}")
-    	print(f"val_f1={f1:.4f}")
-    	print(f"best_epoch={best_epoch}")
+        print(f"val_accuracy={accuracy:.4f}")
+        print(f"val_precision={precision:.4f}")
+        print(f"val_recall={recall:.4f}")
+        print(f"val_f1={f1:.4f}")
+        print(f"best_epoch={best_epoch}")
 
     return best_epoch
 
