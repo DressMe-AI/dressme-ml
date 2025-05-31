@@ -154,7 +154,7 @@ def train_validate_model(X: np.ndarray, y: np.ndarray,
         verbose=0
     )
     
-    csv_logger = callbacks.CSVLogger("training_log.csv", append=false)
+    csv_logger = callbacks.CSVLogger("training_log.csv", append=False)
 
     history = model.fit(
         X_train, y_train,
