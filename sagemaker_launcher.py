@@ -1,0 +1,35 @@
+import sagemaker
+from sagemaker.tensorflow import TensorFlow
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+role = os.getenv("SAGEMAKER_EXECUTION_ROLE")
+
+# Set up SageMaker session and role
+sagemaker_session = sagemaker.Session()
+
+# Upload your training data
+input_dir = "input/data/train"
+s3_input = sagemaker_session.upload_data(path=input_dir, key_prefix="dressmeai/train")
+
+# Define the estimator
+estimator = TensorFlow(
+    entry_point='train.py',
+    role=role,
+    instance_count=1,
+    instance_type='ml.t2.micro',
+    framework_version='2.19.0',
+    py_version='py39',
+    script_mode=True,
+    hyperparameters={
+        'epochs': 50
+    },
+    output_path=f"s3://{sagemaker_session.default_bucket()}/dressmeai/output",
+    base_job_name="dressmeai-train",
+)
+
+# Launch training
+estimator.fit({"training": s3_input})
