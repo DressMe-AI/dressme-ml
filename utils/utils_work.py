@@ -182,11 +182,11 @@ def train_validate_model(X: np.ndarray, y: np.ndarray,
     f1 = f1_score(y_test, y_pred, zero_division=0)
 
     if verbose:
-        print(f"\nFinal Test Accuracy: {accuracy:.2f}")
-        print(f"Precision: {precision:.2f}")
-        print(f"Recall: {recall:.2f}")
-        print(f"F1 Score: {f1:.2f}")
-        print(f"Best epoch based on val accuracy: {best_epoch}")
+    	print(f"val_accuracy={accuracy:.4f}")
+    	print(f"val_precision={precision:.4f}")
+    	print(f"val_recall={recall:.4f}")
+    	print(f"val_f1={f1:.4f}")
+    	print(f"best_epoch={best_epoch}")
 
     return best_epoch
 
