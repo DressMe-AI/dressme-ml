@@ -76,7 +76,7 @@ def show_pair_and_log():
         shown_pairs.add(pair_key)
         print("Saved feedback. Showing next...\n")
 
-    print("✅ All unique combinations have been shown.")
+    print("All unique combinations have been shown.")
 
 #Run this after running everything above on Jupyter Notebook.
 show_pair_and_log()
