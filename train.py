@@ -6,7 +6,7 @@ from utils import import_attributes, call_data, train_validate_model, train_fina
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_dir", type=str, default="/opt/ml/input/data/train")
+    parser.add_argument("--data_dir", type=str, default="/opt/ml/input/data/")
     parser.add_argument("--output_dir", type=str, default="/opt/ml/model")
     parser.add_argument("--epochs", type=int, default=None)
     args = parser.parse_args()
