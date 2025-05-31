@@ -1,0 +1,562 @@
+
+
+--- /home/ubuntu/projects/dressmeai/dressme-ml/ml_code/code_parser.py ---
+
+import os
+
+# Set the root directory of the repo and the output file
+repo_path = os.path.abspath('')
+output_file = "all_code_combined.txt"
+
+# Extensions to include (you can customize this)
+code_extensions = {'.py', '.kts', '.txt', '.bat', '.git', '.md', '.gradle.kts', '.json'}
+
+def is_code_file(filename):
+    return any(filename.endswith(ext) for ext in code_extensions)
+
+with open(output_file, 'w', encoding='utf-8') as outfile:
+    for root, _, files in os.walk(repo_path):
+        for file in files:
+            if is_code_file(file):
+                full_path = os.path.join(root, file)
+                try:
+                    with open(full_path, 'r', encoding='utf-8') as f:
+                        outfile.write(f"\n\n--- {full_path} ---\n\n")
+                        outfile.write(f.read())
+                except Exception as e:
+                    print(f"Could not read {full_path}: {e}")
+
+
+--- /home/ubuntu/projects/dressmeai/dressme-ml/ml_code/requirements.txt ---
+
+ipython==8.12.3
+numpy==2.2.6
+openai==1.82.1
+pandas==2.2.3
+Pillow==11.2.1
+PyYAML==6.0.2
+PyYAML==6.0.2
+scikit_learn==1.6.1
+tensorflow==2.19.0
+
+
+--- /home/ubuntu/projects/dressmeai/dressme-ml/ml_code/all_code_combined.txt ---
+
+
+
+--- /home/ubuntu/projects/dressmeai/dressme-ml/ml_code/attribute_extraction_llm/extract_attributes.py ---
+
+import os
+import json
+import base64
+from pathlib import Path
+from openai import OpenAI
+from PIL import Image
+import pandas as pd
+import yaml
+import logging
+from dotenv import load_dotenv
+
+load_dotenv()
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
+logger = logging.getLogger(__name__)
+
+def load_config(path: str) -> dict:
+    with open(path, "r") as f:
+        return yaml.safe_load(f)
+
+config = load_config("config.yaml")
+
+DATA_DIR = Path(config["data_dir"])
+RESIZED_DIR = Path(config["resized_dir"])
+OUTPUT_PATH = Path(config["output_path"])
+PROMPT_PATH = Path(config["prompt_path"])
+IMG_SIZE = tuple(config["image_size"])
+
+def get_openai_client() -> OpenAI:
+    """
+    Initialize the OpenAI client using an API key from the environment.
+
+    Returns:
+        OpenAI: Authenticated OpenAI client.
+
+    Raises:
+        RuntimeError: If the API key is not set in the environment.
+    """
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError("OPENAI_API_KEY not found in environment.")
+    return OpenAI(api_key=api_key)
+
+def resize_images(source_dir: Path, dest_dir: Path,
+                  size: tuple[int, int]) -> list[Path]:
+    """
+    Resize all images in a directory to a fixed size, centered on a white canvas.
+
+    Args:
+        source_dir (Path): Directory containing original images.
+        dest_dir (Path): Output directory for resized images.
+        size (tuple[int, int]): Target width and height.
+
+    Returns:
+        list[Path]: Paths to resized images.
+    """
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    resized_paths = []
+
+    for img_name in os.listdir(source_dir):
+        try:
+            src_path = source_dir / img_name
+            dest_path = dest_dir / img_name
+
+            img = Image.open(src_path).convert("RGB")
+            img.thumbnail(size, Image.LANCZOS)
+            new_img = Image.new("RGB", size, (255, 255, 255))
+            offset = ((size[0] - img.width) // 2, (size[1] - img.height) // 2)
+            new_img.paste(img, offset)
+            new_img.save(dest_path, "JPEG", quality=85)
+            resized_paths.append(dest_path)
+            logger.info(f"Resized {img_name}")
+
+        except Exception as e:
+            logger.error(f"Could not process {img_name}: {e}")
+
+    return resized_paths
+
+def encode_image_to_base64(image_path: Path) -> str:
+    """
+    Encode an image file as a base64 string.
+
+    Args:
+        image_path (Path): Path to the image file.
+
+    Returns:
+        str: Base64-encoded image.
+    """
+    with open(image_path, "rb") as f:
+        return base64.b64encode(f.read()).decode("utf-8")
+
+def extract_attributes(client: OpenAI, image_paths: list[Path]) -> list[dict]:
+    """
+    Send images to OpenAI GPT-4o with a prompt to extract structured clothing attributes.
+
+    Args:
+        client (OpenAI): Initialized OpenAI client.
+        image_paths (list[Path]): List of image file paths to process.
+
+    Returns:
+        list[dict]: List of dictionaries containing extracted attributes and image IDs.
+    """
+    attributes = []
+
+    PROMPT_PATH = Path(__file__).parent / "prompt.txt"
+    with open(PROMPT_PATH, "r") as f:
+        prompt_text = f.read()
+
+    for path in image_paths:
+        try:
+            base64_img = encode_image_to_base64(path)
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt_text},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_img}"}}
+                    ]
+                }]
+            )
+            content = response.choices[0].message.content.strip("```json\n").strip("```")
+            data = json.loads(content)
+            data["id"] = path.stem
+            attributes.append(data)
+            print(f"[Processed] {path.name}: {data}")
+        except Exception as e:
+            print(f"[Error] {path.name}: {e}")
+
+    return attributes
+
+def save_attributes(attributes: list[dict], output_path: Path):
+    """
+    Save the extracted attribute list to a JSON file.
+
+    Args:
+        attributes (list[dict]): List of attribute dictionaries to save.
+        output_path (Path): File path to write the output JSON.
+    """
+    with open(output_path, "w") as f:
+        json.dump(attributes, f, indent=2)
+    print(f"[Saved] Attributes to {output_path}")
+
+if __name__ == "__main__":
+    client = get_openai_client()
+    resized_images = resize_images(DATA_DIR, RESIZED_DIR, IMG_SIZE)
+    attributes = extract_attributes(client, resized_images)
+    save_attributes(attributes, OUTPUT_PATH)
+
+
+--- /home/ubuntu/projects/dressmeai/dressme-ml/ml_code/attribute_extraction_llm/prompt.txt ---
+
+"""Analyze the clothing item in the image and extract the following attributes in a structured format. Ensure every item has all attributes with consistent categories:
+- Type: (top/bottom)
+- Color1: Primary color only, use basic colors: options: "red, blue, white, black, brown, green, yellow, gray, navy, pink", avoid variations like 'dark blue'
+- Color2: Secondary color only, use basic colors: options: "red, blue, white, black, brown, green, yellow, gray, navy, pink", avoid variations like 'dark blue'. If no secondary color is provided, assign "none".
+- Pattern: options: "solid, striped, floral, plaid, polka dot"
+- Dress Code: options: "formal, casual"
+- Material: options: "cotton, denim, silk, wool, linen, polyester, unknown"
+- Seasonality: options: "spring, summer, fall, winter, all"
+- Fit: options: "loose, relaxed, fitted, tailored, slim"
+Output in JSON format, e.g., {"type": "top", "color1": "white", "color2": "none", "pattern": "solid", "dress_code": "casual", "material": "cotton", "seasonality": "all", "fit": "loose"}."""
+
+
+--- /home/ubuntu/projects/dressmeai/dressme-ml/ml_code/collect_user_data/pair_rating.py ---
+
+import os
+import random
+from PIL import Image as PILImage
+from IPython.display import display
+
+# Set path to folder containing images
+image_folder = "../data/images"
+
+# Get list of top and bottom image filenames
+top_images = sorted([f for f in os.listdir(image_folder) if f.startswith('top_') and f.endswith('.jpeg')])
+bottom_images = sorted([f for f in os.listdir(image_folder) if f.startswith('bottom_') and f.endswith('.jpeg')])
+
+# Track used pairs to avoid duplicates
+shown_pairs = set()
+
+# Output file
+output_file = "../data/combination_scored_v2.txt"
+
+# Load previously logged pairs from file if it exists
+if os.path.exists(output_file):
+    with open(output_file, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.split(",")
+            top_part = parts[0].split(":")[1]
+            bottom_part = parts[1].split(":")[1]
+            shown_pairs.add((top_part, bottom_part))
+
+
+def show_pair_and_log():
+    while len(shown_pairs) < len(top_images) * len(bottom_images):
+        top = random.choice(top_images)
+        bottom = random.choice(bottom_images)
+        pair_key = (top, bottom)
+
+        if pair_key in shown_pairs:
+            continue  # Skip if already shown
+
+        top_id = top.replace(".jpeg", "")
+        bottom_id = bottom.replace(".jpeg", "")
+        print(f"\nRecommendation: top:{top_id}, bottom:{bottom_id}")
+
+        try:
+            img_top = PILImage.open(os.path.join(image_folder, top))
+            img_top.thumbnail((300, 300))  # Max width/height
+            img_top = img_top.rotate(-90, expand=True)
+            display(img_top)
+
+            img_bottom = PILImage.open(os.path.join(image_folder, bottom))
+            img_bottom.thumbnail((300, 300))
+            img_bottom = img_bottom.rotate(-90, expand=True)
+            display(img_bottom)
+
+        except Exception as e:
+            print(f"Failed to load/display image pair {top}, {bottom}: {e}")
+            continue
+
+        while True:
+            try:
+                feedback_input = input("Rate this combination (1 for good, 0 for bad, q to quit): ").strip()
+                if feedback_input == "q":
+                    print("Exiting by user request.")
+                    return  # ends the function
+                feedback = int(feedback_input)
+                if feedback in [0, 1]:
+                    break
+                print("Invalid input. Please enter 1, 0, or q.")
+            except ValueError:
+                print("Please enter a numeric value or 'q' to quit.")
+
+        with open(output_file, "a") as f:
+            f.write(f"top:{top_id},bottom:{bottom_id},{feedback}\n")
+
+        shown_pairs.add(pair_key)
+        print("Saved feedback. Showing next...\n")
+
+    print("✅ All unique combinations have been shown.")
+
+#Run this after running everything above on Jupyter Notebook.
+show_pair_and_log()
+
+--- /home/ubuntu/projects/dressmeai/dressme-ml/ml_code/train_classifier/train_work_classifier.py ---
+
+from utils import import_attributes, call_data, train_validate_model, train_final_model
+
+if __name__ == "__main__":
+    data_path = "./data/"
+
+    # Step 1: Load data
+    encoded_df = import_attributes(data_path, visualize=False)
+    X, y = call_data(encoded_df, data_path, verbose=False)
+
+    # Step 2: Train and validate
+    best_epoch = train_validate_model(X, y, verbose=True)
+
+    # Step 3: Train final model
+    train_final_model(X, y, best_epoch=best_epoch)
+
+
+--- /home/ubuntu/projects/dressmeai/dressme-ml/ml_code/train_classifier/utils/__init__.py ---
+
+from .utils_work import import_attributes, call_data, train_validate_model, train_final_model
+
+
+--- /home/ubuntu/projects/dressmeai/dressme-ml/ml_code/train_classifier/utils/utils_work.py ---
+
+import json
+import os
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.utils import class_weight
+from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers, callbacks
+
+def import_attributes(attributes_path: str, visualize: bool = False) -> pd.DataFrame:
+    """
+    Load clothing attributes from a JSON file and encode categorical features numerically.
+
+    Args:
+        attributes_path (str): Path to the directory containing 'attributes_new.json'.
+        visualize (bool): If True, prints the encoded DataFrame.
+
+    Returns:
+        pd.DataFrame: Encoded DataFrame with numerical representations of attributes.
+    """
+    
+    # Load attributes
+    with open(os.path.join(attributes_path, "attributes_new.json"), "r") as f:
+        attributes = json.load(f)
+
+    # Convert to DataFrame
+    df = pd.DataFrame(attributes)
+
+    # Define mappings for each categorical column
+    mappings = {
+      "type": {"top": 0, "bottom": 1},
+      "color1": {"red": 0, "blue": 1, "white": 2, "black": 3, "brown": 4, "green": 5, "yellow": 6, "gray": 7, "navy": 8, "pink": 9},
+      "color2": {"red": 0, "blue": 1, "white": 2, "black": 3, "brown": 4, "green": 5, "yellow": 6, "gray": 7, "navy": 8, "pink": 9, "none": 10},
+      "pattern": {"solid": 0, "striped": 1, "floral": 2, "plaid": 3, "polka dot": 4},
+      "dress_code": {"formal": 0, "casual": 1},
+      "material": {"cotton": 0, "denim": 1, "silk": 2, "wool": 3, "linen": 4, "polyester": 5, "unknown": 6},
+      "seasonality": {"spring": 0, "summer": 1, "fall": 2, "winter": 3, "all": 4},
+      "fit": {"loose": 0, "relaxed": 1, "fitted": 2, "tailored": 3, "slim": 4}
+    }
+
+    # Create a new DataFrame for numerical representation
+    encoded_df = df.copy()
+    for column, mapping in mappings.items():
+        encoded_df[column] = df[column].map(mapping)
+        # Handle unexpected values by raising a warning
+        if encoded_df[column].isna().any():
+            print(f"Warning: Unknown values in {column}: {df[column][encoded_df[column].isna()].unique()}")
+
+    if visualize:
+      # Keep the 'id' column for reference
+      print(encoded_df)
+    
+    return encoded_df
+
+
+def call_data(encoded_df: pd.DataFrame, combinations_path: str,
+    verbose: bool = False) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Load clothing combinations and labels from file and convert them into feature arrays.
+
+    Args:
+        encoded_df (pd.DataFrame): DataFrame containing encoded clothing attributes.
+        combinations_path (str): Path to the directory containing 'combination_scored.txt'.
+        verbose (bool): If True, prints shapes of the resulting arrays.
+
+    Returns:
+        tuple:
+            - X (np.ndarray): Feature matrix of shape (n_samples, n_features).
+            - y (np.ndarray): Binary labels (0 or 1).
+    """
+
+    # Load combinations and scores
+    with open(os.path.join(combinations_path, "combination_scored.txt"), "r") as f:
+        combinations = [line.strip() for line in f]
+
+    X = []
+    y = []
+
+    for combo in combinations:
+        parts = combo.split(",")
+        top_id = parts[0].split(":")[1]
+        bottom_id = parts[1].split(":")[1]
+        score = int(parts[2])
+
+        # Get encoded attributes for top and bottom (Only picked related content.)
+        top_attrs = encoded_df[encoded_df["id"] == top_id][["color1", "pattern", "material", "fit"]].values
+        bottom_attrs = encoded_df[encoded_df["id"] == bottom_id][["color1", "pattern", "material", "fit"]].values
+
+        if top_attrs.size == 4 and bottom_attrs.size == 4:
+            combo_attrs = np.stack([top_attrs[0], bottom_attrs[0]], axis=-1)  # Shape: (6,2)
+            X.append(combo_attrs)
+            y.append(score)
+
+    # Convert to numpy arrays
+    X = np.array(X)
+    y = np.array(y)
+
+    mask = y != 0  # Ignore y == 0 #Ones the user is neutral about.
+    X = X[mask]
+    y = y[mask]
+    X = X.reshape(X.shape[0], -1)
+    y = np.array([0 if score == -1 else 1 for score in y])
+
+    if verbose:
+        # Verify shapes
+        logger.debug(f"X shape: {X.shape}")
+        logger.debug(f"y shape: {y.shape}")
+
+    return X, y
+
+def train_validate_model(X: np.ndarray, y: np.ndarray,
+                         checkpoint_path: str = "best_model.weights.h5",
+                         seed: int = 42, verbose: bool = False) -> int:
+    """
+    Train a binary classifier using the provided dataset, validate it,
+    and return the epoch that gives the highest validation accuracy.
+
+    Args:
+        X (np.ndarray): Feature matrix of shape (n_samples, n_features).
+        y (np.ndarray): Binary target labels.
+        checkpoint_path (str): Saving directory for the best model weights.
+        seed (int): Random seed for reproducibility.
+        verbose (bool): If True, prints performance metrics.
+
+    Returns:
+        int: The epoch number corresponding to the best validation accuracy.
+    """
+
+    # Split into train (80%) and test (20%)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,
+     random_state=seed, stratify=y
+    )
+
+    weights = class_weight.compute_class_weight(
+        class_weight='balanced', 
+        classes=np.unique(y_train), y=y_train
+    )
+    class_weights = dict(enumerate(weights))
+
+    model = keras.Sequential([
+        layers.Input(shape=(X.shape[-1],)),
+        layers.Dense(4, activation='relu'),
+        layers.Dense(1, activation='sigmoid')
+    ])
+    model.compile(
+        optimizer=keras.optimizers.Adam(learning_rate=0.0002),
+        loss='binary_crossentropy',
+        metrics=['accuracy']
+    )
+
+    checkpoint = callbacks.ModelCheckpoint(
+        checkpoint_path,
+        monitor='val_accuracy',
+        save_best_only=True,
+        mode='max',
+        save_weights_only=True,
+        verbose=0
+    )
+
+    history = model.fit(
+        X_train, y_train,
+        validation_data=(X_test, y_test),
+        epochs=1000,
+        batch_size=1,
+        class_weight=class_weights,
+        callbacks=[checkpoint],
+        verbose=1
+    )
+
+    best_epoch = int(np.argmax(history.history['val_accuracy']) + 1)
+
+    # Load best weights before test
+    model.load_weights(checkpoint_path)
+    y_pred = model.predict(X_test)
+    y_pred = (y_pred > 0.5).astype(int).flatten()
+
+    accuracy = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred, zero_division=0)
+    recall = recall_score(y_test, y_pred, zero_division=0)
+    f1 = f1_score(y_test, y_pred, zero_division=0)
+
+    if verbose:
+        print(f"\nFinal Test Accuracy: {accuracy:.2f}")
+        print(f"Precision: {precision:.2f}")
+        print(f"Recall: {recall:.2f}")
+        print(f"F1 Score: {f1:.2f}")
+        print(f"Best epoch based on val accuracy: {best_epoch}")
+
+    return best_epoch
+
+def train_final_model(X: np.ndarray, y: np.ndarray, best_epoch: int,
+                    tflite_path: str = "model.tflite") -> keras.Model:
+    """
+    Train the final model using the best number of epochs and optionally save it as a TFLite file.
+
+    Args:
+        X (np.ndarray): Attribute matrix for training.
+        y (np.ndarray): Target labels.
+        best_epoch (int): Optimal number of epochs to train.
+        tflite_path (str): Saving directory for the tflite model.
+
+    Returns:
+        keras.Model.
+    """
+
+    weights = class_weight.compute_class_weight(
+        class_weight='balanced',
+        classes=np.unique(y), 
+        y=y
+    )
+    class_weights = dict(enumerate(weights))
+
+    model = keras.Sequential([
+        layers.Input(shape=(X.shape[-1],)),
+        layers.Dense(4, activation='relu'),
+        layers.Dense(1, activation='sigmoid')
+    ])
+    model.compile(
+        optimizer='adam', 
+        loss='binary_crossentropy', 
+        metrics=['accuracy']
+    )
+
+    model.fit(
+        X, y,
+        epochs=best_epoch,
+        batch_size=1,
+        class_weight=class_weights,
+        verbose=1
+    )
+
+    converter = tf.lite.TFLiteConverter.from_keras_model(model)
+    tflite_model = converter.convert()
+    with open(tflite_path, "wb") as f:
+        f.write(tflite_model)
