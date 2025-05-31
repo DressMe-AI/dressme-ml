@@ -8,12 +8,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_dir", type=str, default="/opt/ml/input/data/train")
     parser.add_argument("--output_dir", type=str, default="/opt/ml/model")
+    parser.add_argument("--epochs", type=int, default=None)
     args = parser.parse_args()
 
     encoded_df = import_attributes(args.data_dir)
     X, y = call_data(encoded_df, args.data_dir)
 
-    best_epoch = train_validate_model(X, y, verbose=True)
+    best_epoch = train_validate_model(X, y, epochs = args.epochs, verbose=True)
 
     os.makedirs(args.output_dir, exist_ok=True)
 

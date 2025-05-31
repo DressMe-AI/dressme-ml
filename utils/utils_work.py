@@ -108,6 +108,7 @@ def call_data(encoded_df: pd.DataFrame, combinations_path: str,
     return X, y
 
 def train_validate_model(X: np.ndarray, y: np.ndarray,
+                         epochs: int = 100,
                          checkpoint_path: str = "best_model.weights.h5",
                          seed: int = 42, verbose: bool = False) -> int:
     """
@@ -161,7 +162,7 @@ def train_validate_model(X: np.ndarray, y: np.ndarray,
     history = model.fit(
         X_train, y_train,
         validation_data=(X_test, y_test),
-        epochs=1000,
+        epochs=epochs,
         batch_size=1,
         class_weight=class_weights,
         callbacks=[checkpoint, csv_logger],
