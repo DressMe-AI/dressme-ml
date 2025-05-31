@@ -7,7 +7,6 @@ from utils import import_attributes, call_data, train_validate_model, train_fina
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_dir", type=str, default="/opt/ml/input/data/train")
-    parser.add_argument("--mode", choices=["validate", "final"], default="final")
     parser.add_argument("--output_dir", type=str, default="/opt/ml/model")
     parser.add_argument("--epochs", type=int, default=None)
     args = parser.parse_args()
@@ -15,22 +14,20 @@ if __name__ == "__main__":
     encoded_df = import_attributes(args.data_dir)
     X, y = call_data(encoded_df, args.data_dir)
 
-    if args.mode == "validate":
-        best_epoch = train_validate_model(X, y, verbose=True)
-    else:
-        best_epoch = args.epochs or 100
+    best_epoch = train_validate_model(X, y, verbose=True)
+    best_epoch = args.epochs or 100
 
-        os.makedirs(args.output_dir, exist_ok=True)
+    os.makedirs(args.output_dir, exist_ok=True)
 
-        # Train and save model
-        train_final_model(
-            X, y,
-            best_epoch=best_epoch,
-            tflite_path=os.path.join(args.output_dir, "model.tflite")
-        )
+    # Train and save model
+    train_final_model(
+        X, y,
+        best_epoch=best_epoch,
+        tflite_path=os.path.join(args.output_dir, "model.tflite")
+    )
 
-        # Move logs to model dir
-        for log_file in ["training_log.csv", "final_training_log.csv", "best_model.weights.h5"]:
-            if os.path.exists(log_file):
-                os.rename(log_file, os.path.join(args.output_dir, log_file))
+    # Move logs to model dir
+    for log_file in ["training_log.csv", "final_training_log.csv", "best_model.weights.h5"]:
+        if os.path.exists(log_file):
+            os.rename(log_file, os.path.join(args.output_dir, log_file))
 
