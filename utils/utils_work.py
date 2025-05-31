@@ -22,7 +22,7 @@ def import_attributes(attributes_path: str, visualize: bool = False) -> pd.DataF
     """
     
     # Load attributes
-    with open(os.path.join(attributes_path, "attributes_new.json"), "r") as f:
+    with open(os.path.join(attributes_path, "attributes.json"), "r") as f:
         attributes = json.load(f)
 
     # Convert to DataFrame
