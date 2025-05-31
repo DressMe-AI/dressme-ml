@@ -103,11 +103,6 @@ def call_data(encoded_df: pd.DataFrame, combinations_path: str,
     X = X.reshape(X.shape[0], -1)
     y = np.array([0 if score == -1 else 1 for score in y])
 
-    if verbose:
-        # Verify shapes
-        logger.debug(f"X shape: {X.shape}")
-        logger.debug(f"y shape: {y.shape}")
-
     return X, y
 
 def train_validate_model(X: np.ndarray, y: np.ndarray,
