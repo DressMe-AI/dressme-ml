@@ -150,9 +150,9 @@ def train_validate_model(X: np.ndarray, y: np.ndarray,
 
     checkpoint = callbacks.ModelCheckpoint(
         checkpoint_path,
-        monitor='val_accuracy',
+        monitor='val_loss',
         save_best_only=True,
-        mode='max',
+        mode='min',
         save_weights_only=True,
         verbose=0
     )
