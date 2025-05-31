@@ -158,6 +158,8 @@ def train_validate_model(X: np.ndarray, y: np.ndarray,
         save_weights_only=True,
         verbose=0
     )
+   
+    csv_logger = callbacks.CSVLogger("training_log.csv", append=false)
 
     history = model.fit(
         X_train, y_train,
@@ -165,7 +167,7 @@ def train_validate_model(X: np.ndarray, y: np.ndarray,
         epochs=1000,
         batch_size=1,
         class_weight=class_weights,
-        callbacks=[checkpoint],
+        callbacks=[checkpoint, csv_logger],
         verbose=1
     )
 
@@ -222,12 +224,15 @@ def train_final_model(X: np.ndarray, y: np.ndarray, best_epoch: int,
         loss='binary_crossentropy', 
         metrics=['accuracy']
     )
+    
+    csv_logger = callbacks.CSVLogger("final_training_log.csv", append=False)
 
     model.fit(
         X, y,
         epochs=best_epoch,
         batch_size=1,
         class_weight=class_weights,
+        callbacks=[csv_logger],
         verbose=1
     )
 
