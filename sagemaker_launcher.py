@@ -17,7 +17,7 @@ s3_input = sagemaker_session.upload_data(path=input_dir, key_prefix="dressmeai/t
 
 # Define the estimator
 estimator = TensorFlow(
-    entry_point='train.py',
+    entry_point='train_runner.py',
     role=role,
     instance_count=1,
     instance_type='ml.t2.micro',
