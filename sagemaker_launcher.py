@@ -30,6 +30,7 @@ estimator = TensorFlow(
     },
     output_path=f"s3://{sagemaker_session.default_bucket()}/dressmeai/output",
     base_job_name="dressmeai-train",
+    dependencies=["src/requirements.txt"],
 )
 
 # Launch training
