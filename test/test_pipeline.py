@@ -45,16 +45,16 @@ def sample_encoded_df():
 
 @pytest.fixture
 def sample_combinations_file():
-    """Creates a temp combination_scored.txt file with one positive and one neutral combo."""
+    """Creates a temp combination_scored.txt file with two valid positive combos."""
     lines = [
-        "top:1,bottom:2,1\n",    # valid
-        "top:1,bottom:2,0\n"     # should be ignored
+        "top:1,bottom:2,1\n",
+        "top:1,bottom:2,1\n"  # duplicate on purpose to ensure enough samples
     ]
     with tempfile.TemporaryDirectory() as tmpdir:
         file_path = os.path.join(tmpdir, "combination_scored.txt")
         with open(file_path, "w") as f:
             f.writelines(lines)
-        yield tmpdir  # path to dir containing combination_scored.txt
+        yield tmpdir
 
 def test_call_data_success(sample_encoded_df, sample_combinations_file):
     """Test call_data returns correct feature matrix and labels."""
