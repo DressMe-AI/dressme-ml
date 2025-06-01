@@ -19,13 +19,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def import_attributes(attributes_path: str, visualize: bool = False) -> pd.DataFrame:
+def import_attributes(attributes_path: str) -> pd.DataFrame:
     """
     Load clothing attributes from a JSON file and encode categorical features numerically.
 
     Args:
         attributes_path (str): Path to the directory containing 'attributes_new.json'.
-        visualize (bool): If True, prints the encoded DataFrame.
 
     Returns:
         pd.DataFrame: Encoded DataFrame with numerical representations of attributes.
@@ -58,22 +57,16 @@ def import_attributes(attributes_path: str, visualize: bool = False) -> pd.DataF
         if encoded_df[column].isna().any():
             logger.warning(f"Unknown values in '{column}': {df[column][encoded_df[column].isna()].unique()}")
 
-    if visualize:
-      # Keep the 'id' column for reference
-      print(encoded_df)
-    
     return encoded_df
 
 
-def call_data(encoded_df: pd.DataFrame, combinations_path: str,
-    verbose: bool = False) -> tuple[np.ndarray, np.ndarray]:
+def call_data(encoded_df: pd.DataFrame, combinations_path: str) -> tuple[np.ndarray, np.ndarray]:
     """
     Load clothing combinations and labels from file and convert them into feature arrays.
 
     Args:
         encoded_df (pd.DataFrame): DataFrame containing encoded clothing attributes.
         combinations_path (str): Path to the directory containing 'combination_scored.txt'.
-        verbose (bool): If True, prints shapes of the resulting arrays.
 
     Returns:
         tuple:
@@ -118,7 +111,7 @@ def call_data(encoded_df: pd.DataFrame, combinations_path: str,
 def train_validate_model(X: np.ndarray, y: np.ndarray,
                          epochs: int = 100,
                          checkpoint_path: str = "best_model.weights.h5",
-                         seed: int = 42, verbose: bool = False) -> int:
+                         seed: int = 42) -> int:
     """
     Train a binary classifier using the provided dataset, validate it,
     and return the epoch that gives the highest validation accuracy.
@@ -128,7 +121,6 @@ def train_validate_model(X: np.ndarray, y: np.ndarray,
         y (np.ndarray): Binary target labels.
         checkpoint_path (str): Saving directory for the best model weights.
         seed (int): Random seed for reproducibility.
-        verbose (bool): If True, prints performance metrics.
 
     Returns:
         int: The epoch number corresponding to the best validation accuracy.
@@ -189,12 +181,11 @@ def train_validate_model(X: np.ndarray, y: np.ndarray,
     recall = recall_score(y_test, y_pred, zero_division=0)
     f1 = f1_score(y_test, y_pred, zero_division=0)
 
-    if verbose:
-        print(f"val_accuracy={accuracy:.4f}")
-        print(f"val_precision={precision:.4f}")
-        print(f"val_recall={recall:.4f}")
-        print(f"val_f1={f1:.4f}")
-        print(f"best_epoch={best_epoch}")
+    logger.info(f"Validation accuracy: {accuracy:.4f}")
+    logger.info(f"Validation precision: {precision:.4f}")
+    logger.info(f"Validation recall: {recall:.4f}")
+    logger.info(f"Validation F1 score: {f1:.4f}")
+    logger.info(f"Best epoch based on validation: {best_epoch}")
 
     return best_epoch
 
