@@ -130,6 +130,9 @@ def train_validate_model(X: np.ndarray, y: np.ndarray,
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,
      random_state=seed, stratify=y
     )
+    
+    logger.info(f"Training samples: {X_train.shape[0]}, Features per sample: {X_train.shape[1]}")
+    logger.info(f"Validation samples: {X_test.shape[0]}")
 
     weights = class_weight.compute_class_weight(
         class_weight='balanced', 
