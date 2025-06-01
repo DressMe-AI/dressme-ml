@@ -3,4 +3,4 @@ numpy>=1.26.0,<2.2.0
 pandas==2.2.3
 Pillow==11.2.1
 scikit_learn==1.6.1
-tensorflow==2.19.0
+tensorflow==2.18.0
