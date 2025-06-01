@@ -30,7 +30,6 @@ estimator = TensorFlow(
 
     hyperparameters={
         'epochs': 500,
-        'data_dir': '/opt/ml/input/data/training',
     },
 )
 
