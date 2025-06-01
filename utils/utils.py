@@ -175,7 +175,7 @@ def train_validate_model(X: np.ndarray, y: np.ndarray,
         verbose=1
     )
 
-    best_epoch = int(np.argmax(history.history['val_accuracy']) + 1)
+    best_epoch = int(np.argmin(history.history['val_loss']) + 1)
 
     # Load best weights before test
     model.load_weights(checkpoint_path)
