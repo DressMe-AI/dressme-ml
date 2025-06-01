@@ -172,7 +172,7 @@ def train_validate_model(X: np.ndarray, y: np.ndarray,
         batch_size=1,
         class_weight=class_weights,
         callbacks=[checkpoint, csv_logger],
-        verbose=1
+        verbose=0
     )
 
     best_epoch = int(np.argmin(history.history['val_loss']) + 1)
@@ -237,7 +237,7 @@ def train_final_model(X: np.ndarray, y: np.ndarray, best_epoch: int,
         batch_size=1,
         class_weight=class_weights,
         callbacks=[csv_logger],
-        verbose=1
+        verbose=0
     )
 
     logger.info("Final training completed. Converting model to TFLite format...")
