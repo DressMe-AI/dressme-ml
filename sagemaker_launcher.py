@@ -25,7 +25,7 @@ estimator = TensorFlow(
     py_version='py310',
     script_mode=True,
     hyperparameters={
-        'epochs': 50
+        'epochs': 500
     },
     output_path=f"s3://{sagemaker_session.default_bucket()}/dressmeai/output",
     base_job_name="dressmeai-train",
