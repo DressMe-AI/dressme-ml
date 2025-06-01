@@ -4,7 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def run_training_pipeline(data_dir: str, output_dir: str, epochs: int):
+def run_training_pipeline(data_dir: str, model_dir: str, epochs: int):
     assert os.path.isdir(data_dir), f"Provided data_dir does not exist: {data_dir}"
     assert isinstance(epochs, int) and epochs > 0, f"Epochs must be a positive integer, got: {epochs}"
 
@@ -21,8 +21,8 @@ def run_training_pipeline(data_dir: str, output_dir: str, epochs: int):
     assert isinstance(best_epoch, int) and best_epoch > 0, f"Invalid best_epoch: {best_epoch}"
     logger.info(f"Best epoch selected from validation: {best_epoch}")
 
-    os.makedirs(output_dir, exist_ok=True)
-    tflite_model_path = os.path.join(output_dir, "model.tflite")
+    os.makedirs(model_dir, exist_ok=True)
+    tflite_model_path = os.path.join(model_dir, "model.tflite")
 
     train_final_model(X, y, best_epoch=best_epoch, tflite_path=tflite_model_path)
 
@@ -32,6 +32,6 @@ def run_training_pipeline(data_dir: str, output_dir: str, epochs: int):
 
     for log_file in ["training_log.csv", "final_training_log.csv", "best_model.weights.h5"]:
         if os.path.exists(log_file):
-            os.rename(log_file, os.path.join(output_dir, log_file))
+            os.rename(log_file, os.path.join(model_dir, log_file))
 
-    logger.info("Training completed successfully. Logs and model saved to output_dir.")
+    logger.info("Training completed successfully. Logs and model saved to model_dir.")
