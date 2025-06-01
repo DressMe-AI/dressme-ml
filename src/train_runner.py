@@ -19,7 +19,7 @@ def parse_args():
 if __name__ == "__main__":
     try:
         args = parse_args()
-        logger.info(f"Starting training: data_dir={args.data_dir}, model_dir={args.model__dir}, epochs={args.epochs}")
+        logger.info(f"Starting training: data_dir={args.data_dir}, model_dir={args.model_dir}, epochs={args.epochs}")
         run_training_pipeline(args.data_dir, args.model_dir, args.epochs)
     except Exception as e:
         logger.exception(f"Fatal error during training: {e}")
