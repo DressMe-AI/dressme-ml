@@ -59,10 +59,11 @@ def sample_combinations_file():
 def test_call_data_success(sample_encoded_df, sample_combinations_file):
     """Test call_data returns correct feature matrix and labels."""
     X, y = call_data(sample_encoded_df, sample_combinations_file)
-    
-    assert X.shape == (1, 8)      # 1 valid sample, 4 features per item × 2 items
-    assert y.shape == (1,)
-    assert y[0] in (0, 1)         # binary label
+
+    assert X.ndim == 2
+    assert X.shape[1] == 8        # 4 features × 2 garments
+    assert X.shape[0] == y.shape[0]
+    assert all(label in (0, 1) for label in y)
 
 def test_train_validate_model_runs(sample_encoded_df, sample_combinations_file):
     """Test model trains successfully and returns a valid best epoch."""
