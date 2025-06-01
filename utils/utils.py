@@ -11,6 +11,14 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers, callbacks
 
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s | %(levelname)s | %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 def import_attributes(attributes_path: str, visualize: bool = False) -> pd.DataFrame:
     """
     Load clothing attributes from a JSON file and encode categorical features numerically.
@@ -48,7 +56,7 @@ def import_attributes(attributes_path: str, visualize: bool = False) -> pd.DataF
         encoded_df[column] = df[column].map(mapping)
         # Handle unexpected values by raising a warning
         if encoded_df[column].isna().any():
-            print(f"Warning: Unknown values in {column}: {df[column][encoded_df[column].isna()].unique()}")
+            logger.warning(f"Unknown values in '{column}': {df[column][encoded_df[column].isna()].unique()}")
 
     if visualize:
       # Keep the 'id' column for reference
