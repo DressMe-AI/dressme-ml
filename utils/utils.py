@@ -203,6 +203,7 @@ def train_final_model(X: np.ndarray, y: np.ndarray, best_epoch: int,
     Returns:
         keras.Model.
     """
+    logger.info(f"Starting final training for {best_epoch} epochs...")
 
     weights = class_weight.compute_class_weight(
         class_weight='balanced',
@@ -233,7 +234,11 @@ def train_final_model(X: np.ndarray, y: np.ndarray, best_epoch: int,
         verbose=1
     )
 
+    logger.info("Final training completed. Converting model to TFLite format...")
+
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     tflite_model = converter.convert()
     with open(tflite_path, "wb") as f:
         f.write(tflite_model)
+    logger.info(f"TFLite model saved to: {tflite_path}")
+
