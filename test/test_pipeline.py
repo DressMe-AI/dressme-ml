@@ -3,7 +3,7 @@ import json
 import tempfile
 import pytest
 import pandas as pd
-from utils import import_attributes, call_data
+from utils import import_attributes, call_data, train_validate_model, train_final_model
 
 @pytest.fixture
 def sample_attributes_json():
@@ -63,3 +63,26 @@ def test_call_data_success(sample_encoded_df, sample_combinations_file):
     assert X.shape == (1, 8)      # 1 valid sample, 4 features per item × 2 items
     assert y.shape == (1,)
     assert y[0] in (0, 1)         # binary label
+
+def test_train_validate_model_runs(sample_encoded_df, sample_combinations_file):
+    """Test model trains successfully and returns a valid best epoch."""
+    X, y = call_data(sample_encoded_df, sample_combinations_file)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        checkpoint_path = os.path.join(tmpdir, "test_model.weights.h5")
+        best_epoch = train_validate_model(X, y, epochs=3, checkpoint_path=checkpoint_path)
+
+        assert isinstance(best_epoch, int)
+        assert best_epoch > 0
+        assert os.path.exists(checkpoint_path)
+
+def test_train_final_model_saves_tflite(sample_encoded_df, sample_combinations_file):
+    """Test final model trains and saves a valid .tflite file."""
+    X, y = call_data(sample_encoded_df, sample_combinations_file)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tflite_path = os.path.join(tmpdir, "model.tflite")
+        model = train_final_model(X, y, best_epoch=2, tflite_path=tflite_path)
+
+        assert os.path.exists(tflite_path)
+        assert os.path.getsize(tflite_path) > 0
