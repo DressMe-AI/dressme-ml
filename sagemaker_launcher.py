@@ -22,7 +22,7 @@ estimator = TensorFlow(
     instance_count=1,
     instance_type='ml.t2.micro',
     framework_version='2.18.0',
-    py_version='py39',
+    py_version='py310',
     script_mode=True,
     hyperparameters={
         'epochs': 50
