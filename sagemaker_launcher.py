@@ -29,9 +29,7 @@ estimator = TensorFlow(
     base_job_name="dressmeai-train",
 
     hyperparameters={
-        'epochs': 500,
-        'data_dir': "/opt/ml/input/data/training",
-        'model_dir': "/opt/ml/model"
+        'epochs': 10,
     },
 )
 

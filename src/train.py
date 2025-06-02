@@ -37,3 +37,5 @@ def run_training_pipeline(data_dir: str, model_dir: str, epochs: int):
             os.rename(log_file, os.path.join(model_dir, log_file))
 
     logger.info("Training completed successfully. Logs and model saved to model_dir.")
+    logger.info(f"Contents of model_dir ({model_dir}): {os.listdir(model_dir)}")
+
