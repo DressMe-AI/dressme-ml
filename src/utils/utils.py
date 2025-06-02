@@ -244,6 +244,9 @@ def train_final_model(X: np.ndarray, y: np.ndarray, best_epoch: int,
 
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     tflite_model = converter.convert()
+
+    os.makedirs(os.path.dirname(tflite_path), exist_ok=True)
+
     with open(tflite_path, "wb") as f:
         f.write(tflite_model)
     logger.info(f"TFLite model saved to: {tflite_path}")

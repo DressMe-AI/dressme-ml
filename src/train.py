@@ -8,6 +8,9 @@ def run_training_pipeline(data_dir: str, model_dir: str, epochs: int):
     assert os.path.isdir(data_dir), f"Provided data_dir does not exist: {data_dir}"
     assert isinstance(epochs, int) and epochs > 0, f"Epochs must be a positive integer, got: {epochs}"
 
+    os.makedirs(model_dir, exist_ok=True)
+    assert os.path.isdir(model_dir), f"Provided model_dir does not exist: {model_dir}"
+
     encoded_df = import_attributes(data_dir)
     assert not encoded_df.empty, "Encoded attributes DataFrame is empty."
     logger.info("Attributes loaded and encoded successfully.")
@@ -21,7 +24,6 @@ def run_training_pipeline(data_dir: str, model_dir: str, epochs: int):
     assert isinstance(best_epoch, int) and best_epoch > 0, f"Invalid best_epoch: {best_epoch}"
     logger.info(f"Best epoch selected from validation: {best_epoch}")
 
-    os.makedirs(model_dir, exist_ok=True)
     tflite_model_path = os.path.join(model_dir, "model.tflite")
 
     train_final_model(X, y, best_epoch=best_epoch, tflite_path=tflite_model_path)
