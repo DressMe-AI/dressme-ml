@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run training pipeline.")
-    parser.add_argument('--data_dir', type=str, required=True, default="'/opt/ml/input/data/training", help="Directory containing input data")
+    parser.add_argument('--data_dir', type=str, required=True, default="/opt/ml/input/data/training", help="Directory containing input data")
     parser.add_argument('--model_dir', type=str, required=False, default="/opt/ml/model", help="SageMaker-injected model directory")
     parser.add_argument('--epochs', type=int, default=20, help="Number of training epochs")
     return parser.parse_args()
