@@ -29,7 +29,7 @@ estimator = TensorFlow(
     base_job_name="dressmeai-train",
 
     hyperparameters={
-        'epochs': 10,
+        'epochs': 1000,
     },
 )
 
