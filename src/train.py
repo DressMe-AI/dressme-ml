@@ -1,6 +1,7 @@
 import os
 from utils import import_attributes, call_data, train_validate_model, train_final_model
 import logging
+import shutil
 
 logger = logging.getLogger(__name__)
 
@@ -32,9 +33,10 @@ def run_training_pipeline(data_dir: str, model_dir: str, epochs: int):
     assert os.path.getsize(tflite_model_path) > 0, "TFLite model file is empty."
     logger.info("Final model trained and converted to TFLite.")
 
-    for log_file in ["training_log.csv", "final_training_log.csv", "best_model.weights.h5"]:
-        if os.path.exists(log_file):
-            os.rename(log_file, os.path.join(model_dir, log_file))
+    for log_file in ['training_log.csv', 'final_training_log.csv']:
+        src_path = os.path.join(os.getcwd(), log_file)
+        dst_path = os.path.join(model_dir, log_file)
+        shutil.move(src_path, dst_path)
 
     logger.info("Training completed successfully. Logs and model saved to model_dir.")
     logger.info(f"Contents of model_dir ({model_dir}): {os.listdir(model_dir)}")
