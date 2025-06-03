@@ -30,6 +30,7 @@ jobs:
 
       - name: Run tests
         run: |
+          export PYTHONPATH=src
           pytest tests
 
       - name: Configure AWS credentials
