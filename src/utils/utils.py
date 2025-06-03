@@ -19,6 +19,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 def import_attributes(attributes_path: str) -> pd.DataFrame:
     """
     Load clothing attributes from a JSON file and encode categorical features numerically.
@@ -88,8 +89,12 @@ def call_data(encoded_df: pd.DataFrame, combinations_path: str) -> tuple[np.ndar
         score = int(parts[2])
 
         # Get encoded attributes for top and bottom (Only picked related content.)
-        top_attrs = encoded_df[encoded_df["id"] == top_id][["color1", "pattern", "material", "fit"]].values
-        bottom_attrs = encoded_df[encoded_df["id"] == bottom_id][["color1", "pattern", "material", "fit"]].values
+        top_attrs = encoded_df[encoded_df["id"] == top_id][
+["color1", "pattern", "material", "fit"]
+].values
+        bottom_attrs = encoded_df[encoded_df["id"] == bottom_id][
+["color1", "pattern", "material", "fit"]
+].values
 
         if top_attrs.size == 4 and bottom_attrs.size == 4:
             combo_attrs = np.stack([top_attrs[0], bottom_attrs[0]], axis=-1)  # Shape: (6,2)
@@ -111,6 +116,7 @@ def call_data(encoded_df: pd.DataFrame, combinations_path: str) -> tuple[np.ndar
 
     return X, y
 
+
 def train_validate_model(X: np.ndarray, y: np.ndarray,
                          epochs: int = 100,
                          checkpoint_path: str = "best_model.weights.h5",
@@ -130,10 +136,10 @@ def train_validate_model(X: np.ndarray, y: np.ndarray,
     """
 
     # Split into train (80%) and test (20%)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,
-     random_state=seed, stratify=y
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=seed, stratify=y
     )
-    
+
     logger.info(f"Training samples: {X_train.shape[0]}, Features per sample: {X_train.shape[1]}")
     logger.info(f"Validation samples: {X_test.shape[0]}")
 
@@ -195,6 +201,7 @@ def train_validate_model(X: np.ndarray, y: np.ndarray,
 
     return best_epoch
 
+
 def train_final_model(X: np.ndarray, y: np.ndarray, best_epoch: int,
                     tflite_path: str = "model.tflite") -> keras.Model:
     """
@@ -213,7 +220,7 @@ def train_final_model(X: np.ndarray, y: np.ndarray, best_epoch: int,
 
     weights = class_weight.compute_class_weight(
         class_weight='balanced',
-        classes=np.unique(y), 
+        classes=np.unique(y),
         y=y
     )
     class_weights = dict(enumerate(weights))
