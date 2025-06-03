@@ -1,7 +1,5 @@
-import json
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
+import json
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -10,14 +8,17 @@ from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_sc
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers, callbacks
-
 import logging
+
+# Suppress TensorFlow logs
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s | %(levelname)s | %(message)s'
 )
 logger = logging.getLogger(__name__)
+
 
 def import_attributes(attributes_path: str) -> pd.DataFrame:
     """
@@ -29,7 +30,7 @@ def import_attributes(attributes_path: str) -> pd.DataFrame:
     Returns:
         pd.DataFrame: Encoded DataFrame with numerical representations of attributes.
     """
-    
+
     # Load attributes
     with open(os.path.join(attributes_path, "attributes.json"), "r") as f:
         attributes = json.load(f)
@@ -39,17 +40,19 @@ def import_attributes(attributes_path: str) -> pd.DataFrame:
 
     # Define mappings for each categorical column
     mappings = {
-      "type": {"top": 0, "bottom": 1},
-      "color1": {"red": 0, "blue": 1, "white": 2, "black": 3, "brown": 4, "green": 5, "yellow": 6,
-                 "gray": 7, "navy": 8, "pink": 9},
-      "color2": {"red": 0, "blue": 1, "white": 2, "black": 3, "brown": 4, "green": 5, "yellow": 6, 
-                 "gray": 7, "navy": 8, "pink": 9, "none": 10},
-      "pattern": {"solid": 0, "striped": 1, "floral": 2, "plaid": 3, "polka dot": 4},
-      "dress_code": {"formal": 0, "casual": 1},
-      "material": {"cotton": 0, "denim": 1, "silk": 2, "wool": 3, "linen": 4, "polyester": 5, 
-                   "unknown": 6},
-      "seasonality": {"spring": 0, "summer": 1, "fall": 2, "winter": 3, "all": 4},
-      "fit": {"loose": 0, "relaxed": 1, "fitted": 2, "tailored": 3, "slim": 4}
+        "type": {"top": 0, "bottom": 1},
+        "color1": {"red": 0, "blue": 1, "white": 2, "black": 3,
+                   "brown": 4, "green": 5, "yellow": 6, "gray": 7,
+                   "navy": 8, "pink": 9},
+        "color2": {"red": 0, "blue": 1, "white": 2, "black": 3,
+                   "brown": 4, "green": 5, "yellow": 6, "gray": 7,
+                   "navy": 8, "pink": 9, "none": 10},
+        "pattern": {"solid": 0, "striped": 1, "floral": 2, "plaid": 3, "polka dot": 4},
+        "dress_code": {"formal": 0, "casual": 1},
+        "material": {"cotton": 0, "denim": 1, "silk": 2, "wool": 3,
+                     "linen": 4, "polyester": 5, "unknown": 6},
+        "seasonality": {"spring": 0, "summer": 1, "fall": 2, "winter": 3, "all": 4},
+        "fit": {"loose": 0, "relaxed": 1, "fitted": 2, "tailored": 3, "slim": 4}
     }
 
     # Create a new DataFrame for numerical representation
@@ -91,9 +94,15 @@ def call_data(encoded_df: pd.DataFrame, combinations_path: str) -> tuple[np.ndar
         score = int(parts[2])
 
         # Get encoded attributes for top and bottom (Only picked related content.)
-        top_attrs = encoded_df[encoded_df["id"] == top_id][["color1", "pattern", 
-                                                            "material","fit"]].values
-        bottom_attrs = encoded_df[encoded_df["id"] == bottom_id][["color1", "pattern", 
+        top_attrs = encoded_df[encoded_df["id"] == top_id][
+            ["color1", "pattern", "material", "fit"]
+        ].values
+        bottom_attrs = encoded_df[encoded_df["id"] == bottom_id][
+            ["color1", "pattern", "material", "fit"]
+        ].values
+        top_attrs = encoded_df[encoded_df["id"] == top_id][["color1", "pattern",
+                                                            "material", "fit"]].values
+        bottom_attrs = encoded_df[encoded_df["id"] == bottom_id][["color1", "pattern",
                                                                   "material", "fit"]].values
 
         if top_attrs.size == 4 and bottom_attrs.size == 4:
@@ -116,6 +125,7 @@ def call_data(encoded_df: pd.DataFrame, combinations_path: str) -> tuple[np.ndar
 
     return X, y
 
+
 def train_validate_model(X: np.ndarray, y: np.ndarray,
                          epochs: int = 100,
                          checkpoint_path: str = "best_model.weights.h5",
@@ -135,15 +145,15 @@ def train_validate_model(X: np.ndarray, y: np.ndarray,
     """
 
     # Split into train (80%) and test (20%)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,
-     random_state=seed, stratify=y
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=seed, stratify=y
     )
-    
+
     logger.info(f"Training samples: {X_train.shape[0]}, Features per sample: {X_train.shape[1]}")
     logger.info(f"Validation samples: {X_test.shape[0]}")
 
     weights = class_weight.compute_class_weight(
-        class_weight='balanced', 
+        class_weight='balanced',
         classes=np.unique(y_train), y=y_train
     )
     class_weights = dict(enumerate(weights))
@@ -167,7 +177,7 @@ def train_validate_model(X: np.ndarray, y: np.ndarray,
         save_weights_only=True,
         verbose=0
     )
-    
+
     csv_logger = callbacks.CSVLogger("training_log.csv", append=False)
 
     history = model.fit(
@@ -200,8 +210,9 @@ def train_validate_model(X: np.ndarray, y: np.ndarray,
 
     return best_epoch
 
+
 def train_final_model(X: np.ndarray, y: np.ndarray, best_epoch: int,
-                    tflite_path: str = "model.tflite") -> keras.Model:
+                      tflite_path: str = "model.tflite") -> keras.Model:
     """
     Train the final model using the best number of epochs and optionally save it as a TFLite file.
 
@@ -218,7 +229,7 @@ def train_final_model(X: np.ndarray, y: np.ndarray, best_epoch: int,
 
     weights = class_weight.compute_class_weight(
         class_weight='balanced',
-        classes=np.unique(y), 
+        classes=np.unique(y),
         y=y
     )
     class_weights = dict(enumerate(weights))
@@ -229,13 +240,12 @@ def train_final_model(X: np.ndarray, y: np.ndarray, best_epoch: int,
         layers.Dense(1, activation='sigmoid')
     ])
     model.compile(
-        optimizer='adam', 
-        loss='binary_crossentropy', 
+        optimizer='adam',
+        loss='binary_crossentropy',
         metrics=['accuracy']
     )
-    
-    csv_logger = callbacks.CSVLogger("final_training_log.csv", append=False)
 
+    csv_logger = callbacks.CSVLogger("final_training_log.csv", append=False)
     model.fit(
         X, y,
         epochs=best_epoch,

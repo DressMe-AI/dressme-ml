@@ -2,21 +2,12 @@ name: Train and Deploy on SageMaker
 
 on:
   push:
-    branches:
-      - main
-      - master
-  pull_request:
-    branches:
-      - main
-      - master
+    tags:
+      - 'ready-*'
 
 jobs:
   train:
     runs-on: ubuntu-latest
-
-    env:
-      AWS_REGION: us-east-2
-      SAGEMAKER_BUCKET: sagemaker-${{ secrets.AWS_REGION }}-${{ secrets.AWS_ACCOUNT_ID }}
 
     steps:
       - name: Checkout code
@@ -25,21 +16,21 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.10
+          python-version: 3.9
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r src/requirements.txt
-          pip install pytest
+          pip install pytest flake8
 
       - name: Lint
         run: |
-          pip install flake8
           flake8 src --max-line-length=120
 
       - name: Run tests
         run: |
+          export PYTHONPATH=src
           pytest tests
 
       - name: Configure AWS credentials
@@ -50,5 +41,8 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Run training with SageMaker
+        if: ${{ success() }}
+        env:
+          SAGEMAKER_EXECUTION_ROLE: ${{ secrets.SAGEMAKER_EXECUTION_ROLE }}
         run: |
           python sagemaker_launcher.py
