@@ -1,4 +1,4 @@
-kname: Train and Deploy on SageMaker
+name: Train and Deploy on SageMaker
 
 on:
   push:
