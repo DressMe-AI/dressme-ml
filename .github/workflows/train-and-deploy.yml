@@ -3,7 +3,7 @@ name: Train and Deploy on SageMaker
 on:
   push:
     tags:
-      - 'ready'
+      - 'ready-*'
 
 jobs:
   train:
