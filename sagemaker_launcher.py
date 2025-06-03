@@ -3,10 +3,7 @@ from sagemaker.tensorflow import TensorFlow
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
-
-role = os.getenv("SAGEMAKER_EXECUTION_ROLE")
+role = secrets.SAGEMAKER_EXECUTION_ROLE
 
 # Set up SageMaker session and role
 sagemaker_session = sagemaker.Session()
