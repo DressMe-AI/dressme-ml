@@ -1,0 +1,13 @@
+name: SageMaker Training Pipeline
+
+on:
+  push:
+    branches:
+      - main  # Change this to your actual target branch
+
+jobs:
+  start:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Placeholder step
+        run: echo "GitHub Actions is wired up."
