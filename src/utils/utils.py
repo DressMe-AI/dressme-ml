@@ -40,11 +40,14 @@ def import_attributes(attributes_path: str) -> pd.DataFrame:
     # Define mappings for each categorical column
     mappings = {
       "type": {"top": 0, "bottom": 1},
-      "color1": {"red": 0, "blue": 1, "white": 2, "black": 3, "brown": 4, "green": 5, "yellow": 6, "gray": 7, "navy": 8, "pink": 9},
-      "color2": {"red": 0, "blue": 1, "white": 2, "black": 3, "brown": 4, "green": 5, "yellow": 6, "gray": 7, "navy": 8, "pink": 9, "none": 10},
+      "color1": {"red": 0, "blue": 1, "white": 2, "black": 3, "brown": 4, "green": 5, "yellow": 6,
+                 "gray": 7, "navy": 8, "pink": 9},
+      "color2": {"red": 0, "blue": 1, "white": 2, "black": 3, "brown": 4, "green": 5, "yellow": 6, 
+                 "gray": 7, "navy": 8, "pink": 9, "none": 10},
       "pattern": {"solid": 0, "striped": 1, "floral": 2, "plaid": 3, "polka dot": 4},
       "dress_code": {"formal": 0, "casual": 1},
-      "material": {"cotton": 0, "denim": 1, "silk": 2, "wool": 3, "linen": 4, "polyester": 5, "unknown": 6},
+      "material": {"cotton": 0, "denim": 1, "silk": 2, "wool": 3, "linen": 4, "polyester": 5, 
+                   "unknown": 6},
       "seasonality": {"spring": 0, "summer": 1, "fall": 2, "winter": 3, "all": 4},
       "fit": {"loose": 0, "relaxed": 1, "fitted": 2, "tailored": 3, "slim": 4}
     }
@@ -88,8 +91,10 @@ def call_data(encoded_df: pd.DataFrame, combinations_path: str) -> tuple[np.ndar
         score = int(parts[2])
 
         # Get encoded attributes for top and bottom (Only picked related content.)
-        top_attrs = encoded_df[encoded_df["id"] == top_id][["color1", "pattern", "material", "fit"]].values
-        bottom_attrs = encoded_df[encoded_df["id"] == bottom_id][["color1", "pattern", "material", "fit"]].values
+        top_attrs = encoded_df[encoded_df["id"] == top_id][["color1", "pattern", 
+                                                            "material","fit"]].values
+        bottom_attrs = encoded_df[encoded_df["id"] == bottom_id][["color1", "pattern", 
+                                                                  "material", "fit"]].values
 
         if top_attrs.size == 4 and bottom_attrs.size == 4:
             combo_attrs = np.stack([top_attrs[0], bottom_attrs[0]], axis=-1)  # Shape: (6,2)
@@ -250,4 +255,3 @@ def train_final_model(X: np.ndarray, y: np.ndarray, best_epoch: int,
     with open(tflite_path, "wb") as f:
         f.write(tflite_model)
     logger.info(f"TFLite model saved to: {tflite_path}")
-
