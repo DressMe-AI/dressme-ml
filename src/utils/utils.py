@@ -40,17 +40,17 @@ def import_attributes(attributes_path: str) -> pd.DataFrame:
 
     # Define mappings for each categorical column
     mappings = {
-      "type": {"top": 0, "bottom": 1},
-      "color1": {"red": 0, "blue": 1, "white": 2, "black": 3, "brown": 4, "green": 5, "yellow": 6,
+        "type": {"top": 0, "bottom": 1},
+        "color1": {"red": 0, "blue": 1, "white": 2, "black": 3, "brown": 4, "green": 5, "yellow": 6,
                  "gray": 7, "navy": 8, "pink": 9},
-      "color2": {"red": 0, "blue": 1, "white": 2, "black": 3, "brown": 4, "green": 5, "yellow": 6, 
+        "color2": {"red": 0, "blue": 1, "white": 2, "black": 3, "brown": 4, "green": 5, "yellow": 6,
                  "gray": 7, "navy": 8, "pink": 9, "none": 10},
-      "pattern": {"solid": 0, "striped": 1, "floral": 2, "plaid": 3, "polka dot": 4},
-      "dress_code": {"formal": 0, "casual": 1},
-      "material": {"cotton": 0, "denim": 1, "silk": 2, "wool": 3, "linen": 4, "polyester": 5, 
-                   "unknown": 6},
-      "seasonality": {"spring": 0, "summer": 1, "fall": 2, "winter": 3, "all": 4},
-      "fit": {"loose": 0, "relaxed": 1, "fitted": 2, "tailored": 3, "slim": 4}
+        "pattern": {"solid": 0, "striped": 1, "floral": 2, "plaid": 3, "polka dot": 4},
+        "dress_code": {"formal": 0, "casual": 1},
+        "material": {"cotton": 0, "denim": 1, "silk": 2, "wool": 3, "linen": 4, "polyester": 5,
+                     "unknown": 6},
+        "seasonality": {"spring": 0, "summer": 1, "fall": 2, "winter": 3, "all": 4},
+        "fit": {"loose": 0, "relaxed": 1, "fitted": 2, "tailored": 3, "slim": 4}
     }
 
     # Create a new DataFrame for numerical representation
@@ -93,14 +93,14 @@ def call_data(encoded_df: pd.DataFrame, combinations_path: str) -> tuple[np.ndar
 
         # Get encoded attributes for top and bottom (Only picked related content.)
         top_attrs = encoded_df[encoded_df["id"] == top_id][
-["color1", "pattern", "material", "fit"]
-].values
+            ["color1", "pattern", "material", "fit"]
+        ].values
         bottom_attrs = encoded_df[encoded_df["id"] == bottom_id][
-["color1", "pattern", "material", "fit"]
-].values
-        top_attrs = encoded_df[encoded_df["id"] == top_id][["color1", "pattern", 
+            ["color1", "pattern", "material", "fit"]
+        ].values
+        top_attrs = encoded_df[encoded_df["id"] == top_id][["color1", "pattern",
                                                             "material","fit"]].values
-        bottom_attrs = encoded_df[encoded_df["id"] == bottom_id][["color1", "pattern", 
+        bottom_attrs = encoded_df[encoded_df["id"] == bottom_id][["color1", "pattern",
                                                                   "material", "fit"]].values
         
         if top_attrs.size == 4 and bottom_attrs.size == 4:
@@ -151,7 +151,7 @@ def train_validate_model(X: np.ndarray, y: np.ndarray,
     logger.info(f"Validation samples: {X_test.shape[0]}")
 
     weights = class_weight.compute_class_weight(
-        class_weight='balanced', 
+        class_weight='balanced',
         classes=np.unique(y_train), y=y_train
     )
     class_weights = dict(enumerate(weights))
@@ -175,7 +175,7 @@ def train_validate_model(X: np.ndarray, y: np.ndarray,
         save_weights_only=True,
         verbose=0
     )
-    
+
     csv_logger = callbacks.CSVLogger("training_log.csv", append=False)
 
     history = model.fit(
@@ -238,11 +238,11 @@ def train_final_model(X: np.ndarray, y: np.ndarray, best_epoch: int,
         layers.Dense(1, activation='sigmoid')
     ])
     model.compile(
-        optimizer='adam', 
-        loss='binary_crossentropy', 
+        optimizer='adam',
+        loss='binary_crossentropy',
         metrics=['accuracy']
     )
-    
+
     csv_logger = callbacks.CSVLogger("final_training_log.csv", append=False)
 
     model.fit(
