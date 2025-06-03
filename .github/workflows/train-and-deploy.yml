@@ -42,6 +42,7 @@ jobs:
 
       - name: Run training with SageMaker
         if: ${{ success() }}
+	env:
+          SAGEMAKER_EXECUTION_ROLE: ${{ secrets.SAGEMAKER_EXECUTION_ROLE }}
         run: |
           python sagemaker_launcher.py
-
