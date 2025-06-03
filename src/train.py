@@ -6,6 +6,7 @@ import shutil
 
 logger = logging.getLogger(__name__)
 
+
 def run_training_pipeline(data_dir: str, model_dir: str, epochs: int):
     assert os.path.isdir(data_dir), f"Provided data_dir does not exist: {data_dir}"
     assert isinstance(epochs, int) and epochs > 0, f"Epochs must be a positive integer, got: {epochs}"
@@ -41,4 +42,3 @@ def run_training_pipeline(data_dir: str, model_dir: str, epochs: int):
 
     logger.info("Training completed successfully. Logs and model saved to model_dir.")
     logger.info(f"Contents of model_dir ({model_dir}): {os.listdir(model_dir)}")
-
