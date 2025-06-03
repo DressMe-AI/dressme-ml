@@ -92,20 +92,17 @@ def call_data(encoded_df: pd.DataFrame, combinations_path: str) -> tuple[np.ndar
         score = int(parts[2])
 
         # Get encoded attributes for top and bottom (Only picked related content.)
-<<<<<<< HEAD
         top_attrs = encoded_df[encoded_df["id"] == top_id][
 ["color1", "pattern", "material", "fit"]
 ].values
         bottom_attrs = encoded_df[encoded_df["id"] == bottom_id][
 ["color1", "pattern", "material", "fit"]
 ].values
-=======
         top_attrs = encoded_df[encoded_df["id"] == top_id][["color1", "pattern", 
                                                             "material","fit"]].values
         bottom_attrs = encoded_df[encoded_df["id"] == bottom_id][["color1", "pattern", 
                                                                   "material", "fit"]].values
->>>>>>> 659652472d0174aa5be4e35e1a65a78882d54657
-
+        
         if top_attrs.size == 4 and bottom_attrs.size == 4:
             combo_attrs = np.stack([top_attrs[0], bottom_attrs[0]], axis=-1)  # Shape: (6,2)
             X.append(combo_attrs)
