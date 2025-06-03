@@ -4,3 +4,4 @@ pandas==2.2.3
 Pillow==11.2.1
 scikit_learn==1.6.1
 tensorflow==2.18.0
+sagemaker==2.218.0
