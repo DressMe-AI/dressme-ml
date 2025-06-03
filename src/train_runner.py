@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def parse_args():
     parser = argparse.ArgumentParser(description="Run training pipeline.")
     parser.add_argument('--data_dir', type=str, default=os.environ.get("SM_CHANNEL_TRAINING", "/opt/ml/input/data/training"))
-    parser.add_argument('--model_dir', type=str, default=os.environ.get("SM_MODEL_DIR", "/opt/ml/model"))
+    parser.add_argument('--model_dir', type=str, default="/opt/ml/model")
     parser.add_argument('--epochs', type=int, default=20, help="Number of training epochs")
     return parser.parse_args()
 
