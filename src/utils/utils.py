@@ -1,7 +1,5 @@
-import json
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
+import json
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -10,8 +8,10 @@ from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_sc
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers, callbacks
-
 import logging
+
+# Suppress TensorFlow logs
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 logging.basicConfig(
     level=logging.INFO,

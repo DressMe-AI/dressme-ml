@@ -3,6 +3,7 @@ import logging
 import os
 from train import run_training_pipeline
 
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s | %(levelname)s | %(message)s'
@@ -20,7 +21,7 @@ if __name__ == "__main__":
     try:
         args = parse_args()
         model_dir_local = os.environ.get("SM_MODEL_DIR", "/opt/ml/model")
-        logger.info(f"Starting training: data_dir={args.data_dir}, model_dir={model_dir_local}, epochs={args.epochs}")
+        logger.info(f"Begin Train: data_dir={args.data_dir}, model_dir={model_dir_local}, epochs={args.epochs}")
         run_training_pipeline(args.data_dir, model_dir_local, args.epochs)
     except Exception as e:
         logger.exception(f"Fatal error during training: {e}")
