@@ -1,7 +1,6 @@
 import sagemaker
 from sagemaker.tensorflow import TensorFlow
 import os
-from dotenv import load_dotenv
 
 role = secrets.SAGEMAKER_EXECUTION_ROLE
 
