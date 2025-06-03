@@ -9,9 +9,6 @@ jobs:
   train:
     runs-on: ubuntu-latest
 
-    env:
-      SAGEMAKER_BUCKET: s3://sagemaker-${{ secrets.AWS_REGION }}-${{ secrets.AWS_ACCOUNT_ID }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
